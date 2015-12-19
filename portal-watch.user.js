@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-watch
 // @name           IITC plugin: Portal Watch
 // @category       Info
-// @version        0.0.2.20160920192000
+// @version        0.0.3.20151219232300
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL      https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.meta.js
 // @downloadURL    https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.user.js
@@ -29,6 +29,7 @@ window.plugin.portalWatch = function() {
 
 window.plugin.portalWatch.portalsLoaded = [];    
 window.plugin.portalWatch.isLoadPortalDetails = false;
+window.plugin.portalWatch.exportPortalsByAgentsList = [];
     
 window.plugin.portalWatch.loadPortalDetails = function() {    
     var portals = window.plugin.portalWatch.getPortalsFromStorage();
@@ -72,6 +73,7 @@ window.plugin.portalWatch.loadPortalDetails = function() {
         
 window.plugin.portalWatch.showWatcher = function() {
     window.plugin.portalWatch.isLoadPortalDetails = false;
+    window.plugin.portalWatch.exportPortalsByAgentsList = [];
     
     var resoDetails = [];
 	var processResonatorSlot = function(reso,slot) {
@@ -119,21 +121,26 @@ window.plugin.portalWatch.showWatcher = function() {
         
         resoDetails = [];
         var resoAgents = [];
+        var missingR8 = 8;
         
         if (details.resonators && details.resonators.length == 8) {
 				// fully deployed - we can make assumptions about deployment slots
 			$.each([2, 1, 3, 0, 4, 7, 5, 6], function(ind, slot) {
                 var r = details.resonators[slot];
-                if(r.level === 8)
+                if(r.level === 8) {
                     resoAgents.push(r.owner.toLowerCase());
+                    missingR8--;
+                }
 				processResonatorSlot(r,slot);
 			});
 		} else {
 			// partially deployed portal - we can no longer find out which resonator is in which slot
 			for(var ind=0; ind<8; ind++) {
                 var r = ind < details.resonators.length ? details.resonators[ind] : null;
-                if(r && r.level === 8)
+                if(r && r.level === 8) {
                     resoAgents.push(r.owner.toLowerCase());
+                    missingR8--;
+                }
 				processResonatorSlot(r, null);
 			}
 		}
@@ -144,25 +151,27 @@ window.plugin.portalWatch.showWatcher = function() {
 		$.each(resoDetails, function(i, r) {
 			html += "<td style='width:50px'>" + r[0] + "</td>";
 		});
-        
+                
         var agents = window.plugin.portalWatch.getAgentsFromStorage();
-        if(agents) {
-
-            html += "<td style='width:200px'>";
+        html += "<td style='width:200px'>";
+        if(agents && data.level < 8) {
             $.each(agents, function(i, a) { 
                 if(resoAgents.indexOf(a.toLowerCase()) < 0) {
                     html += "<span>" + a + "</span> ";
+                    
+                    if(!window.plugin.portalWatch.exportPortalsByAgentsList[a])
+                        window.plugin.portalWatch.exportPortalsByAgentsList[a] = [];
+                    window.plugin.portalWatch.exportPortalsByAgentsList[a].push({ title : data.title, missingR8 : missingR8 });
                 }
             });
-            html += "</td>";
         }
-        
+        html += "</td>";
         html += "<td style='width:10px'><a href='javascript:window.plugin.portalWatch.removePortalFromWatcher(\""+guid+"\")' title='Remove portal'>X</a></td>";
 		
 		html += "</tr>";
 	});
 
-    html += "</table>"
+    html += "</table><button onclick='window.plugin.portalWatch.exportPortalsByAgents();'>Export By Agents</button>"
 
 	//var modDetails = details ? '<div class="mods">'+getModDetails(details)+'</div>' : '';
 	//var miscDetails = details ? getPortalMiscDetails(guid,details) : '';
@@ -334,6 +343,35 @@ window.plugin.portalWatch.showAddAgents = function() {
 window.plugin.portalWatch.isAllPortalsAreLoaded = function() {
     return Object.keys(window.plugin.portalWatch.portalsLoaded).every(function(k) { 
         return window.plugin.portalWatch.portalsLoaded[k] === true; 
+    });
+}
+
+window.plugin.portalWatch.exportPortalsByAgents = function() {
+    var html = "<textarea id='portal_watch_portalsbyagents' rows='10' cols='35'>";
+     
+    $.each(Object.keys(window.plugin.portalWatch.exportPortalsByAgentsList), function(i, a) { 
+        var agentObj = window.plugin.portalWatch.exportPortalsByAgentsList[a];
+        if(agentObj) {
+            html += "@" + a + "\n";
+            $.each(agentObj, function(j, p) {
+                html += "* " + p.title + " (missing " + p.missingR8 + " R8)\n";
+            });
+        }
+    });
+    html += "</textarea>";
+        
+    var d = dialog({
+        html: html,
+        dialogClass: "ui-dialog-linklist",
+        title: "Portal Watcher - Export",
+        id: "portal-watch-portals-by-agents",
+        width: 300,
+        buttons: [{
+            text: "Close",
+            click: function() {
+                $(this).dialog("close");
+            }
+        }]
     });
 }
 

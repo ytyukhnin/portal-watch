@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-watch
 // @name           IITC plugin: Portal Watch
 // @category       Info
-// @version        0.0.2.20160920192000
+// @version        0.0.3.20151219232300
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL      https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.meta.js
 // @downloadURL    https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.user.js
