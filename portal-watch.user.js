@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-watch
 // @name           IITC plugin: Portal Watch
 // @category       Info
-// @version        0.0.3.20151219232300
+// @version        0.0.4.20151229231500
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL      https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.meta.js
 // @downloadURL    https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.user.js
@@ -161,7 +161,7 @@ window.plugin.portalWatch.showWatcher = function() {
                     
                     if(!window.plugin.portalWatch.exportPortalsByAgentsList[a])
                         window.plugin.portalWatch.exportPortalsByAgentsList[a] = [];
-                    window.plugin.portalWatch.exportPortalsByAgentsList[a].push({ title : data.title, missingR8 : missingR8 });
+                    window.plugin.portalWatch.exportPortalsByAgentsList[a].push({ title : data.title, missingR8 : missingR8, team: data.team, level: data.level });
                 }
             });
         }
@@ -353,8 +353,16 @@ window.plugin.portalWatch.exportPortalsByAgents = function() {
         var agentObj = window.plugin.portalWatch.exportPortalsByAgentsList[a];
         if(agentObj) {
             html += "@" + a + "\n";
-            $.each(agentObj, function(j, p) {
-                html += "* " + p.title + " (missing " + p.missingR8 + " R8)\n";
+            $.each(agentObj.sort(
+                function (a, b) {
+                    if (a === "E") // Alphabet order :)
+                      return -1;
+                    if (a === "R")
+                      return 1;
+                    return 0;
+                    }), 
+                function(j, p) {
+                    html += "* " + p.team + "P" + p.level + " " + p.title + " (missing " + p.missingR8 + " R8)\n";
             });
         }
     });
