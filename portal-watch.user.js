@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-watch
 // @name           IITC plugin: Portal Watch
 // @category       Info
-// @version        0.0.4.20151229231500
+// @version        0.0.4.20151229233000
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL      https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.meta.js
 // @downloadURL    https://s3-eu-west-1.amazonaws.com/ingress-sandbox/portal-watch.user.js
@@ -355,9 +355,9 @@ window.plugin.portalWatch.exportPortalsByAgents = function() {
             html += "@" + a + "\n";
             $.each(agentObj.sort(
                 function (a, b) {
-                    if (a === "E") // Alphabet order :)
+                    if (a.team === "E" && b.team === "R") // Alphabet order :)
                       return -1;
-                    if (a === "R")
+                    if (a.team === "R" && b.team === "E")
                       return 1;
                     return 0;
                     }), 
